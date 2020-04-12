@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+这个mapper指定一个唯一的namespace，namespace的值习惯上设置成包名+sql映射文件名，
+这样就能够保证namespace的值是唯一的
+ -->
+<mapper namespace="com.wpw.mybatisassoaction.mapper.UserMapper">
+    <resultMap id="map" type="com.wpw.mybatisassoaction.entity.User">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <association property="company" column="company_id" select="getCompany">
+        </association>
+        <collection property="accountList" column="id" select="listAccountByUserId"/>
+    </resultMap>
+    <select id="listAccountByUserId" parameterType="int" resultMap="accountMap">
+        select *
+        from account
+        where user_id = #{id}
+    </select>
+    <resultMap id="accountMap" type="com.wpw.mybatisassoaction.entity.Account">
+        <id property="id" column="id"/>
+        <result property="accountName" column="name"/>
+    </resultMap>
+    <select id="optionUser" parameterType="int" resultMap="map">
+        select *
+        from user
+        where id = #{id}
+    </select>
+    <resultMap id="companyMap" type="com.wpw.mybatisassoaction.entity.Company">
+        <id property="id" column="id"/>
+        <result property="companyName" column="name"/>
+    </resultMap>
+    <select id="getCompany" resultMap="companyMap">
+        select *
+        from company
+        where id = #{id}
+    </select>
+    <resultMap id="userMap" type="com.wpw.mybatisassoaction.entity.User">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <association property="company" column="company_id" javaType="com.wpw.mybatisassoaction.entity.Company">
+            <id property="id" column="companyId"/>
+            <result property="companyName" column="companyName"/>
+        </association>
+        <collection property="accountList" column="id"  ofType="com.wpw.mybatisassoaction.entity.Account">
+            <id property="id" column="accountId"/>
+            <result property="accountName" column="accountName"/>
+        </collection>
+    </resultMap>
+    <select id="selectOne" parameterType="int" resultMap="userMap">
+        select u.id, u.name, c.id companyId, c.name companyName, a.id accountId, a.name accountName
+        from user u
+                 left join company c on u.company_id = c.id
+                 left join account a on u.id = a.user_id
+        where u.id = #{id}
+    </select>
+</mapper>
